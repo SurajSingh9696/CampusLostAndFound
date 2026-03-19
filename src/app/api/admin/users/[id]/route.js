@@ -119,6 +119,13 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    if (targetUser.role === 'admin') {
+      return NextResponse.json(
+        { message: 'Admin accounts cannot be deleted' },
+        { status: 403 }
+      );
+    }
+
     const [deletedItemsResult] = await Promise.all([
       Item.deleteMany({ postedBy: targetUser._id }),
       Item.updateMany(

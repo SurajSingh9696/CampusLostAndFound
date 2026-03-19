@@ -150,6 +150,12 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeleteUser = async (targetUserId, userEmail) => {
+    const targetUser = usersData.find((entry) => entry._id === targetUserId);
+    if (targetUser?.role === 'admin') {
+      toast.error('Admin accounts are protected and cannot be deleted');
+      return;
+    }
+
     const confirmed = window.confirm(`Delete user ${userEmail}? This will also remove all items posted by this user.`);
     if (!confirmed) return;
 
@@ -211,21 +217,21 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-secondary-100/40">
-      <div className="bg-gradient-to-r from-secondary-900 via-secondary-800 to-secondary-700 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-secondary-900 via-secondary-800 to-secondary-700 text-white relative overflow-hidden z-10">
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'radial-gradient(circle at 20% 20%, #ffffff 0, transparent 20%), radial-gradient(circle at 80% 0%, #ffffff 0, transparent 25%)',
         }}></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-display font-bold">Admin Control Center</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">Admin Control Center</h1>
               <p className="text-secondary-100 mt-2 max-w-2xl">
                 Manage users, moderate posted items, and monitor every critical administrative action.
               </p>
             </div>
             <button
               onClick={refreshData}
-              className="px-5 py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-colors flex items-center gap-2 font-semibold"
+              className="w-full md:w-auto px-5 py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-colors flex items-center justify-center gap-2 font-semibold"
               disabled={refreshing}
             >
               <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -235,27 +241,31 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 -mt-6">
-        <div className="bg-white border border-neutral-200 rounded-xl shadow-sm p-2 flex flex-wrap gap-2 mb-6">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = tab.key === activeTab;
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-4 sm:pt-6">
+        <div className="sticky top-16 z-40 -mx-4 px-4 sm:mx-0 sm:px-0 mb-6">
+          <div className="bg-white/95 backdrop-blur border-y sm:border border-neutral-200 sm:rounded-xl shadow-sm p-2 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center gap-2 min-w-max">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = tab.key === activeTab;
 
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                  isActive
-                    ? 'bg-secondary-800 text-white shadow-sm'
-                    : 'text-neutral-700 hover:bg-neutral-100'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            );
-          })}
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                      isActive
+                        ? 'bg-secondary-800 text-white shadow-sm'
+                        : 'text-neutral-700 hover:bg-neutral-100'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {activeTab === 'overview' && (
@@ -333,7 +343,85 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="space-y-3 lg:hidden">
+              {filteredUsers.map((entry) => {
+                const isSelf = entry._id === user?.id;
+                const isAdminAccount = entry.role === 'admin';
+
+                return (
+                  <div key={entry._id} className="border border-neutral-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-neutral-900">{entry.name}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">{entry.email}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">{entry.department || 'No department'}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`badge ${entry.role === 'admin' ? 'badge-secondary' : 'badge-primary'}`}>
+                          {entry.role}
+                        </span>
+                        <span className={`badge ${entry.isBlocked ? 'badge-error' : 'badge-success'}`}>
+                          {entry.isBlocked ? 'Blocked' : 'Active'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {entry.isBlocked ? (
+                        <button
+                          onClick={() => handleUserAction(entry._id, 'unblock')}
+                          className="px-2.5 py-2 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold inline-flex items-center justify-center gap-1"
+                        >
+                          <FiUnlock className="w-3.5 h-3.5" /> Unblock
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUserAction(entry._id, 'block')}
+                          disabled={isSelf}
+                          className="px-2.5 py-2 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FiLock className="w-3.5 h-3.5" /> Block
+                        </button>
+                      )}
+
+                      {entry.role === 'admin' ? (
+                        <button
+                          onClick={() => handleUserAction(entry._id, 'make-student')}
+                          disabled={isSelf}
+                          className="px-2.5 py-2 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FiUser className="w-3.5 h-3.5" /> Make Student
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUserAction(entry._id, 'make-admin')}
+                          className="px-2.5 py-2 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold inline-flex items-center justify-center gap-1"
+                        >
+                          <FiShield className="w-3.5 h-3.5" /> Make Admin
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="mt-2">
+                      {isAdminAccount ? (
+                        <div className="px-2.5 py-2 rounded-md bg-neutral-100 text-neutral-600 text-xs font-semibold text-center">
+                          Protected: admin account cannot be deleted
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteUser(entry._id, entry.email)}
+                          className="w-full px-2.5 py-2 rounded-md bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold inline-flex items-center justify-center gap-1"
+                        >
+                          <FiTrash2 className="w-3.5 h-3.5" /> Delete User
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
@@ -346,68 +434,81 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((entry) => (
-                    <tr key={entry._id} className="border-b border-neutral-100">
-                      <td className="py-3 pr-3">
-                        <p className="font-semibold text-neutral-900">{entry.name}</p>
-                        <p className="text-xs text-neutral-500">{entry.email}</p>
-                      </td>
-                      <td className="py-3 pr-3">
-                        <span className={`badge ${entry.role === 'admin' ? 'badge-secondary' : 'badge-primary'}`}>
-                          {entry.role}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-3">
-                        <span className={`badge ${entry.isBlocked ? 'badge-error' : 'badge-success'}`}>
-                          {entry.isBlocked ? 'Blocked' : 'Active'}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-3 text-sm text-neutral-600">{entry.department || '-'}</td>
-                      <td className="py-3 pr-3 text-sm text-neutral-600">{new Date(entry.createdAt).toLocaleDateString()}</td>
-                      <td className="py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {entry.isBlocked ? (
-                            <button
-                              onClick={() => handleUserAction(entry._id, 'unblock')}
-                              className="px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold inline-flex items-center gap-1"
-                            >
-                              <FiUnlock className="w-3.5 h-3.5" /> Unblock
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleUserAction(entry._id, 'block')}
-                              className="px-2.5 py-1.5 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-semibold inline-flex items-center gap-1"
-                            >
-                              <FiLock className="w-3.5 h-3.5" /> Block
-                            </button>
-                          )}
+                  {filteredUsers.map((entry) => {
+                    const isSelf = entry._id === user?.id;
+                    const isAdminAccount = entry.role === 'admin';
 
-                          {entry.role === 'admin' ? (
-                            <button
-                              onClick={() => handleUserAction(entry._id, 'make-student')}
-                              className="px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold inline-flex items-center gap-1"
-                            >
-                              <FiUser className="w-3.5 h-3.5" /> Make Student
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleUserAction(entry._id, 'make-admin')}
-                              className="px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold inline-flex items-center gap-1"
-                            >
-                              <FiShield className="w-3.5 h-3.5" /> Make Admin
-                            </button>
-                          )}
+                    return (
+                      <tr key={entry._id} className="border-b border-neutral-100">
+                        <td className="py-3 pr-3">
+                          <p className="font-semibold text-neutral-900">{entry.name}</p>
+                          <p className="text-xs text-neutral-500">{entry.email}</p>
+                        </td>
+                        <td className="py-3 pr-3">
+                          <span className={`badge ${entry.role === 'admin' ? 'badge-secondary' : 'badge-primary'}`}>
+                            {entry.role}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-3">
+                          <span className={`badge ${entry.isBlocked ? 'badge-error' : 'badge-success'}`}>
+                            {entry.isBlocked ? 'Blocked' : 'Active'}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-3 text-sm text-neutral-600">{entry.department || '-'}</td>
+                        <td className="py-3 pr-3 text-sm text-neutral-600">{new Date(entry.createdAt).toLocaleDateString()}</td>
+                        <td className="py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {entry.isBlocked ? (
+                              <button
+                                onClick={() => handleUserAction(entry._id, 'unblock')}
+                                className="px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold inline-flex items-center gap-1"
+                              >
+                                <FiUnlock className="w-3.5 h-3.5" /> Unblock
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleUserAction(entry._id, 'block')}
+                                disabled={isSelf}
+                                className="px-2.5 py-1.5 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-semibold inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FiLock className="w-3.5 h-3.5" /> Block
+                              </button>
+                            )}
 
-                          <button
-                            onClick={() => handleDeleteUser(entry._id, entry.email)}
-                            className="px-2.5 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold inline-flex items-center gap-1"
-                          >
-                            <FiTrash2 className="w-3.5 h-3.5" /> Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {entry.role === 'admin' ? (
+                              <button
+                                onClick={() => handleUserAction(entry._id, 'make-student')}
+                                disabled={isSelf}
+                                className="px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FiUser className="w-3.5 h-3.5" /> Make Student
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleUserAction(entry._id, 'make-admin')}
+                                className="px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold inline-flex items-center gap-1"
+                              >
+                                <FiShield className="w-3.5 h-3.5" /> Make Admin
+                              </button>
+                            )}
+
+                            {isAdminAccount ? (
+                              <span className="px-2.5 py-1.5 rounded-md bg-neutral-100 text-neutral-600 text-xs font-semibold inline-flex items-center gap-1">
+                                Protected
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleDeleteUser(entry._id, entry.email)}
+                                className="px-2.5 py-1.5 rounded-md bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold inline-flex items-center gap-1"
+                              >
+                                <FiTrash2 className="w-3.5 h-3.5" /> Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -441,16 +542,16 @@ export default function AdminDashboardPage() {
                       Posted by {entry.postedBy?.name || 'Unknown'} ({entry.postedBy?.email || 'N/A'})
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto">
                     <button
                       onClick={() => router.push(`/items/${entry._id}`)}
-                      className="px-3 py-2 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold"
+                      className="w-full sm:w-auto px-3 py-2 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold"
                     >
                       View
                     </button>
                     <button
                       onClick={() => handleDeleteItem(entry._id, entry.title)}
-                      className="px-3 py-2 rounded-md bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold inline-flex items-center gap-1"
+                      className="w-full sm:w-auto px-3 py-2 rounded-md bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold inline-flex items-center justify-center gap-1"
                     >
                       <FiTrash2 className="w-3.5 h-3.5" /> Delete
                     </button>
