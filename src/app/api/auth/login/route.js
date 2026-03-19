@@ -36,6 +36,13 @@ export async function POST(request) {
       );
     }
 
+    if (user.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
+
     const token = signToken(user._id);
 
     return NextResponse.json({
@@ -50,6 +57,7 @@ export async function POST(request) {
         department: user.department,
         studentId: user.studentId,
         avatar: user.avatar,
+        isBlocked: user.isBlocked,
         itemsPosted: user.itemsPosted,
         itemsReturned: user.itemsReturned,
         reputation: user.reputation,

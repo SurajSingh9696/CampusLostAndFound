@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
-import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiHome, FiGrid, FiPlusCircle } from 'react-icons/fi';
+import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiHome, FiGrid, FiPlusCircle, FiShield } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
@@ -34,6 +34,7 @@ export default function Navbar() {
     { href: '/', label: 'Home', icon: FiHome },
     { href: '/browse', label: 'Browse Items', icon: FiGrid },
     { href: '/post-item', label: 'Post Item', icon: FiPlusCircle, protected: true },
+    { href: '/admin', label: 'Admin', icon: FiShield, protected: true, adminOnly: true },
   ];
 
   return (
@@ -60,6 +61,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => {
               if (link.protected && !isAuthenticated) return null;
+              if (link.adminOnly && user?.role !== 'admin') return null;
               const Icon = link.icon;
               const isActive = pathname === link.href;
               
@@ -142,6 +144,7 @@ export default function Navbar() {
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) => {
                 if (link.protected && !isAuthenticated) return null;
+                if (link.adminOnly && user?.role !== 'admin') return null;
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
                 

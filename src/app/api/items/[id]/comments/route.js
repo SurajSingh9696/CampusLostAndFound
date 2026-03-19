@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Item from '@/models/Item';
+import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(request, { params }) {
@@ -13,6 +14,21 @@ export async function POST(request, { params }) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    if (user.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
       );
     }
 

@@ -125,6 +125,72 @@ class APIClient {
   async getStats() {
     return this.request('/stats');
   }
+
+  // Admin endpoints
+  async getAdminOverview(token) {
+    return this.request('/admin/overview', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getAdminUsers(params = {}, token) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/admin/users${queryString ? `?${queryString}` : ''}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateAdminUser(id, payload, token) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteAdminUser(id, payload, token) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async getAdminItems(params = {}, token) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/admin/items${queryString ? `?${queryString}` : ''}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async deleteAdminItem(id, payload, token) {
+    return this.request(`/admin/items/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async getAdminLogs(params = {}, token) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/admin/logs${queryString ? `?${queryString}` : ''}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
 }
 
 export default new APIClient();

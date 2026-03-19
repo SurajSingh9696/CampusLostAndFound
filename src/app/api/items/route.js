@@ -115,6 +115,13 @@ export async function POST(request) {
       );
     }
 
+    if (user.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
+
     // Create item
     const item = await Item.create({
       title,

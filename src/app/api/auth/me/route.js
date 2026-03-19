@@ -23,6 +23,13 @@ export async function GET(request) {
       );
     }
 
+    if (user.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Get user error:', error);

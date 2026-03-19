@@ -58,6 +58,13 @@ export async function PUT(request, { params }) {
 
     const user = await User.findById(userId);
 
+    if (user?.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
+
     // Check authorization
     if (item.postedBy.toString() !== userId && user.role !== 'admin') {
       return NextResponse.json(
@@ -113,6 +120,13 @@ export async function DELETE(request, { params }) {
     }
 
     const user = await User.findById(userId);
+
+    if (user?.isBlocked) {
+      return NextResponse.json(
+        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
 
     // Check authorization
     if (item.postedBy.toString() !== userId && user.role !== 'admin') {

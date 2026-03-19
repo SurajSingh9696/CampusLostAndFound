@@ -17,6 +17,21 @@ export async function POST(request, { params }) {
       );
     }
 
+    const claimer = await User.findById(userId);
+    if (!claimer) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    if (claimer.isBlocked) {
+      return NextResponse.json(
+        { message: claimer.blockedReason || 'Your account has been blocked by an administrator' },
+        { status: 403 }
+      );
+    }
+
     const item = await Item.findById(id);
     if (!item) {
       return NextResponse.json(
@@ -47,11 +62,8 @@ export async function POST(request, { params }) {
     }
 
     // Update claimer's reputation
-    const claimer = await User.findById(userId);
-    if (claimer) {
-      claimer.reputation = (claimer.reputation || 0) + 5;
-      await claimer.save();
-    }
+    claimer.reputation = (claimer.reputation || 0) + 5;
+    await claimer.save();
 
     const updatedItem = await Item.findById(id)
       .populate('postedBy', 'name email avatar')
