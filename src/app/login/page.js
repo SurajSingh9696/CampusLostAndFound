@@ -15,6 +15,7 @@ export default function LoginPage() {
   const { setAuth } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [blockedMessage, setBlockedMessage] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setBlockedMessage('');
 
     try {
       const data = await api.login(formData);
@@ -34,6 +36,11 @@ export default function LoginPage() {
       toast.success('Login successful!');
       router.push('/browse');
     } catch (error) {
+      if (error.status === 403 && error.errorCode === 'ACCOUNT_BLOCKED') {
+        setBlockedMessage(error.message || 'You are banned by admin');
+        return;
+      }
+
       toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
@@ -132,6 +139,30 @@ export default function LoginPage() {
               <h2 className="text-3xl font-display font-bold text-secondary-900 mb-2">Welcome Back</h2>
               <p className="text-neutral-600">Sign in to access your account</p>
             </div>
+
+            {blockedMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border border-red-200 bg-gradient-to-r from-red-50 to-rose-50 p-5"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-4xl font-display font-extrabold text-red-600 leading-none">404</p>
+                    <p className="text-base font-semibold text-red-800 mt-2">Access Denied</p>
+                    <p className="text-sm text-red-700 mt-1">You are banned by admin and cannot login.</p>
+                    <p className="text-xs text-red-700/90 mt-2">Reason: {blockedMessage}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBlockedMessage('')}
+                    className="px-3 py-1.5 rounded-md bg-red-100 hover:bg-red-200 text-red-800 text-xs font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">

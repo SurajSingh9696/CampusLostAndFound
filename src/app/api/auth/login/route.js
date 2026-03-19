@@ -38,7 +38,10 @@ export async function POST(request) {
 
     if (user.isBlocked) {
       return NextResponse.json(
-        { message: user.blockedReason || 'Your account has been blocked by an administrator' },
+        {
+          message: user.blockedReason || 'Your account has been blocked by an administrator',
+          errorCode: 'ACCOUNT_BLOCKED',
+        },
         { status: 403 }
       );
     }

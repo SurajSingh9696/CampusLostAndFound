@@ -21,7 +21,10 @@ class APIClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        const requestError = new Error(data.message || 'Something went wrong');
+        requestError.status = response.status;
+        requestError.errorCode = data.errorCode;
+        throw requestError;
       }
 
       return data;
