@@ -64,6 +64,7 @@ export async function POST(request) {
         itemsPosted: user.itemsPosted,
         itemsReturned: user.itemsReturned,
         reputation: user.reputation,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {

@@ -16,6 +16,7 @@ export default function NotificationBadge() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const totalCount = notifications.length;
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -71,7 +72,7 @@ export default function NotificationBadge() {
     }
   }, [showNotifications]);
 
-  if (!isAuthenticated || unreadCount === 0) return null;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="relative notification-dropdown">
@@ -85,13 +86,17 @@ export default function NotificationBadge() {
         whileTap={{ scale: 0.95 }}
       >
         <FiBell className="w-5 h-5 text-neutral-700" />
-        <motion.span
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -top-1 -right-1 w-5 h-5 bg-accent-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg"
-        >
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </motion.span>
+        {totalCount > 0 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className={`absolute -top-1 -right-1 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg ${
+              unreadCount > 0 ? 'bg-accent-500' : 'bg-neutral-500'
+            }`}
+          >
+            {totalCount > 9 ? '9+' : totalCount}
+          </motion.span>
+        )}
       </motion.button>
 
       <AnimatePresence>

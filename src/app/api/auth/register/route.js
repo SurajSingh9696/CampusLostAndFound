@@ -51,6 +51,7 @@ export async function POST(request) {
           phone: user.phone,
           department: user.department,
           studentId: user.studentId,
+          createdAt: user.createdAt,
         },
       },
       { status: 201 }

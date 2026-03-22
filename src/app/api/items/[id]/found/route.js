@@ -101,7 +101,7 @@ export async function POST(request, { params }) {
     const updatedItem = await Item.findById(id)
       .populate('postedBy', 'name email avatar')
       .populate('claimedBy', 'name email avatar')
-      .populate('foundReports.user', 'name email avatar')
+      .populate('foundReports.user', 'name email avatar phone department studentId')
       .lean();
 
     return NextResponse.json({

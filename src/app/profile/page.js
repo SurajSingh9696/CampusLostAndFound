@@ -108,6 +108,13 @@ export default function ProfilePage() {
     setEditedProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const joinedDate = (() => {
+    if (!user?.createdAt) return 'N/A';
+    const parsedDate = new Date(user.createdAt);
+    if (Number.isNaN(parsedDate.getTime())) return 'N/A';
+    return parsedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  })();
+
   if (!isAuthenticated) {
     return <LoadingSpinner fullScreen />;
   }
@@ -191,7 +198,7 @@ export default function ProfilePage() {
                   )}
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white border border-white/30">
                     <FiCalendar className="w-3 h-3 mr-1" />
-                    Joined {new Date(user?.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    Joined {joinedDate}
                   </span>
                 </div>
               </div>

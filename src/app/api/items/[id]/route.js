@@ -11,7 +11,9 @@ export async function GET(request, { params }) {
     const { id } = await params;
     const item = await Item.findById(id)
       .populate('postedBy', 'name email avatar phone department studentId reputation')
-      .populate('claimedBy', 'name email')
+      .populate('claimedBy', 'name email phone department studentId avatar')
+      .populate('claims.user', 'name email avatar phone department studentId')
+      .populate('foundReports.user', 'name email avatar phone department studentId')
       .populate('comments.user', 'name avatar')
       .lean();
 

@@ -406,6 +406,105 @@ export default function ItemDetailsPage({ params }) {
                   </motion.div>
                 )}
 
+                {/* Claimers/Finders Details - Only visible to item owner */}
+                {isOwner && ((item.type === 'Found' && claimsCount > 0) || (item.type === 'Lost' && foundsCount > 0)) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="rounded-xl border-2 border-primary-200 bg-primary-50 overflow-hidden"
+                  >
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-3">
+                      <h3 className="font-bold text-white flex items-center space-x-2">
+                        <FiUser className="w-5 h-5" />
+                        <span>
+                          {item.type === 'Found'
+                            ? `People Who Claimed (${claimsCount})`
+                            : `People Who Found (${foundsCount})`
+                          }
+                        </span>
+                      </h3>
+                    </div>
+                    <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                      {(item.type === 'Found' ? item.claims : item.foundReports)?.map((record, index) => (
+                        <motion.div
+                          key={record._id || index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-white rounded-lg p-4 shadow-sm border border-neutral-200 hover:shadow-md transition-all duration-200"
+                        >
+                          <div className="flex items-start space-x-4">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                              {record.user?.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div>
+                                <h4 className="font-bold text-neutral-900 text-lg">{record.user?.name}</h4>
+                                <p className="text-xs text-neutral-500">
+                                  {item.type === 'Found' ? 'Claimed' : 'Found'} on {formatDate(record.claimedAt || record.foundAt)}
+                                </p>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Department/Branch */}
+                                {record.user?.department && (
+                                  <div className="flex items-center space-x-2 text-sm">
+                                    <FiUser className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs text-neutral-500">Department</p>
+                                      <p className="font-medium text-neutral-700 truncate">{record.user.department}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Student ID */}
+                                {record.user?.studentId && (
+                                  <div className="flex items-center space-x-2 text-sm">
+                                    <FiUser className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs text-neutral-500">Student ID</p>
+                                      <p className="font-medium text-neutral-700 truncate">{record.user.studentId}</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-100">
+                                {/* Email */}
+                                <a
+                                  href={`mailto:${record.user?.email}`}
+                                  className="flex items-center space-x-2 text-sm hover:text-primary-600 transition-colors duration-200 group"
+                                >
+                                  <FiMail className="w-4 h-4 text-accent-600 flex-shrink-0 group-hover:text-primary-600" />
+                                  <div className="min-w-0">
+                                    <p className="text-xs text-neutral-500">Email</p>
+                                    <p className="font-medium text-neutral-700 truncate group-hover:text-primary-600">{record.user?.email}</p>
+                                  </div>
+                                </a>
+
+                                {/* Phone */}
+                                {record.user?.phone && (
+                                  <a
+                                    href={`tel:${record.user.phone}`}
+                                    className="flex items-center space-x-2 text-sm hover:text-primary-600 transition-colors duration-200 group"
+                                  >
+                                    <FiPhone className="w-4 h-4 text-green-600 flex-shrink-0 group-hover:text-primary-600" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs text-neutral-500">Phone</p>
+                                      <p className="font-medium text-neutral-700 truncate group-hover:text-primary-600">{record.user.phone}</p>
+                                    </div>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Actions */}
                 {isOwner && (
                   <div className="flex items-center space-x-3 pt-4 border-t border-neutral-200">
