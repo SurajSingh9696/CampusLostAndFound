@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
 import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiHome, FiGrid, FiPlusCircle, FiShield } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import NotificationBadge from '@/components/NotificationBadge';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -84,6 +85,7 @@ export default function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated && <NotificationBadge />}
             {isAuthenticated ? (
               <>
                 <Link
@@ -147,7 +149,7 @@ export default function Navbar() {
                 if (link.adminOnly && user?.role !== 'admin') return null;
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
-                
+
                 return (
                   <Link
                     key={link.href}
@@ -164,6 +166,12 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+
+              {isAuthenticated && (
+                <div className="px-4 py-2">
+                  <NotificationBadge />
+                </div>
+              )}
 
               {isAuthenticated ? (
                 <>

@@ -114,6 +114,15 @@ class APIClient {
     });
   }
 
+  async foundItem(id, token) {
+    return this.request(`/items/${id}/found`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
   async addComment(id, text, token) {
     return this.request(`/items/${id}/comments`, {
       method: 'POST',
@@ -121,6 +130,24 @@ class APIClient {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ text }),
+    });
+  }
+
+  // Notification endpoints
+  async getNotifications(token) {
+    return this.request('/notifications', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async markNotificationAsRead(id, token) {
+    return this.request(`/notifications/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 

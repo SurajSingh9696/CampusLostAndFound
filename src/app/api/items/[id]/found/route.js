@@ -18,17 +18,17 @@ export async function POST(request, { params }) {
       );
     }
 
-    const claimer = await User.findById(userId);
-    if (!claimer) {
+    const finder = await User.findById(userId);
+    if (!finder) {
       return NextResponse.json(
         { message: 'User not found' },
         { status: 404 }
       );
     }
 
-    if (claimer.isBlocked) {
+    if (finder.isBlocked) {
       return NextResponse.json(
-        { message: claimer.blockedReason || 'Your account has been blocked by an administrator' },
+        { message: finder.blockedReason || 'Your account has been blocked by an administrator' },
         { status: 403 }
       );
     }
@@ -41,33 +41,33 @@ export async function POST(request, { params }) {
       );
     }
 
-    if (item.type !== 'Found') {
+    if (item.type !== 'Lost') {
       return NextResponse.json(
-        { message: 'This action is only available for found items' },
+        { message: 'This action is only available for lost items' },
         { status: 400 }
       );
     }
 
-    // Check if user already claimed this item
-    const alreadyClaimed = item.claims.some(
-      claim => claim.user.toString() === userId
+    // Check if user already reported finding this item
+    const alreadyReported = item.foundReports.some(
+      report => report.user.toString() === userId
     );
 
-    if (alreadyClaimed) {
+    if (alreadyReported) {
       return NextResponse.json(
-        { message: 'You have already claimed this item' },
+        { message: 'You have already reported finding this item' },
         { status: 400 }
       );
     }
 
-    // Add to claims array
-    item.claims.push({
+    // Add to foundReports array
+    item.foundReports.push({
       user: userId,
-      claimedAt: new Date(),
+      foundAt: new Date(),
     });
 
-    // If this is the first claim, mark item as Claimed and update poster's stats
-    if (item.claims.length === 1 && item.status === 'Open') {
+    // If this is the first found report, mark item as Claimed and update poster's stats
+    if (item.foundReports.length === 1 && item.status === 'Open') {
       item.status = 'Claimed';
       item.claimedBy = userId;
       item.claimedAt = new Date();
@@ -80,9 +80,9 @@ export async function POST(request, { params }) {
         await poster.save();
       }
 
-      // Update claimer's reputation
-      claimer.reputation = (claimer.reputation || 0) + 5;
-      await claimer.save();
+      // Update finder's reputation
+      finder.reputation = (finder.reputation || 0) + 5;
+      await finder.save();
     }
 
     await item.save();
@@ -93,25 +93,25 @@ export async function POST(request, { params }) {
         recipient: item.postedBy,
         sender: userId,
         item: item._id,
-        type: 'claim',
-        message: `${claimer.name} claimed your found item: ${item.title}`,
+        type: 'found',
+        message: `${finder.name} reported finding your lost item: ${item.title}`,
       });
     }
 
     const updatedItem = await Item.findById(id)
       .populate('postedBy', 'name email avatar')
       .populate('claimedBy', 'name email avatar')
-      .populate('claims.user', 'name email avatar')
+      .populate('foundReports.user', 'name email avatar')
       .lean();
 
     return NextResponse.json({
-      message: 'Item claimed successfully',
+      message: 'Found report submitted successfully',
       item: updatedItem,
     });
   } catch (error) {
-    console.error('Claim item error:', error);
+    console.error('Report found item error:', error);
     return NextResponse.json(
-      { message: error.message || 'Error claiming item' },
+      { message: error.message || 'Error reporting found item' },
       { status: 500 }
     );
   }

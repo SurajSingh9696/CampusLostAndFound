@@ -117,6 +117,28 @@ const itemSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  claims: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    claimedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  foundReports: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    foundAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

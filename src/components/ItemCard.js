@@ -9,6 +9,10 @@ import { useState } from 'react';
 export default function ItemCard({ item, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
 
+  const claimsCount = item.claims?.length || 0;
+  const foundsCount = item.foundReports?.length || 0;
+  const hasActivity = (item.type === 'Found' && claimsCount > 0) || (item.type === 'Lost' && foundsCount > 0);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,12 +68,30 @@ export default function ItemCard({ item, index = 0 }) {
             </motion.div>
 
             {/* Status Badge */}
-            <motion.div 
+            <motion.div
               className={`absolute top-3 right-3 badge ${getStatusColor(item.status)}`}
               whileHover={{ scale: 1.05 }}
             >
               {item.status}
             </motion.div>
+
+            {/* Claims/Found Count Badge */}
+            {hasActivity && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className={`absolute bottom-3 left-3 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center space-x-1 ${
+                  item.type === 'Found'
+                    ? 'bg-accent-500 text-white'
+                    : 'bg-green-500 text-white'
+                }`}
+                whileHover={{ scale: 1.05 }}
+              >
+                <span>{item.type === 'Found' ? claimsCount : foundsCount}</span>
+                <span>{item.type === 'Found' ? (claimsCount === 1 ? 'Claim' : 'Claims') : (foundsCount === 1 ? 'Found' : 'Founds')}</span>
+              </motion.div>
+            )}
 
             {/* Quick Action Buttons (appear on hover) */}
             <motion.div

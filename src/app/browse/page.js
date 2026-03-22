@@ -20,7 +20,7 @@ export default function BrowsePage() {
   const [filters, setFilters] = useState({
     type: '',
     category: '',
-    status: 'Open',
+    status: '',
     location: '',
     sort: '-createdAt',
   });
@@ -75,14 +75,14 @@ export default function BrowsePage() {
     setFilters({
       type: '',
       category: '',
-      status: 'Open',
+      status: '',
       location: '',
       sort: '-createdAt',
     });
     setSearchQuery('');
   };
 
-  const activeFilterCount = Object.values(filters).filter((v) => v && v !== 'Open' && v !== '-createdAt').length;
+  const activeFilterCount = Object.values(filters).filter((v) => v && v !== '-createdAt').length;
 
   return (
     <div className="min-h-screen bg-neutral-50 py-8">

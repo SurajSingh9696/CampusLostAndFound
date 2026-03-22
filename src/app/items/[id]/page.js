@@ -44,7 +44,7 @@ export default function ItemDetailsPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [claiming, setClaiming] = useState(false);
+  const [actioning, setActioning] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -95,16 +95,19 @@ export default function ItemDetailsPage({ params }) {
       return;
     }
 
-    if (window.confirm('Are you sure you want to claim this item?')) {
-      setClaiming(true);
+    const actionText = item.type === 'Found' ? 'claim' : 'report finding';
+    if (window.confirm(`Are you sure you want to ${actionText} this item?`)) {
+      setActioning(true);
       try {
-        const data = await api.claimItem(unwrappedParams.id, token);
+        const data = item.type === 'Found'
+          ? await api.claimItem(unwrappedParams.id, token)
+          : await api.foundItem(unwrappedParams.id, token);
         setItem(data.item);
-        toast.success('Item claimed successfully!');
+        toast.success(data.message || 'Action completed successfully!');
       } catch (error) {
-        toast.error(error.message || 'Failed to claim item');
+        toast.error(error.message || 'Failed to complete action');
       } finally {
-        setClaiming(false);
+        setActioning(false);
       }
     }
   };
@@ -148,7 +151,11 @@ export default function ItemDetailsPage({ params }) {
   }
 
   const isOwner = user && item.postedBy._id === user.id;
-  const canClaim = isAuthenticated && !isOwner && item.status === 'Open';
+  const canTakeAction = isAuthenticated && !isOwner;
+
+  // Calculate counts
+  const claimsCount = item.claims?.length || 0;
+  const foundsCount = item.foundReports?.length || 0;
 
   return (
     <div className="min-h-screen bg-neutral-50 py-8">
@@ -353,6 +360,52 @@ export default function ItemDetailsPage({ params }) {
                   </div>
                 )}
 
+                {/* Claims/Found Reports Count */}
+                {((item.type === 'Found' && claimsCount > 0) || (item.type === 'Lost' && foundsCount > 0)) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`rounded-xl p-4 border-2 ${
+                      item.type === 'Found'
+                        ? 'bg-accent-50 border-accent-200'
+                        : 'bg-green-50 border-green-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`text-sm font-semibold ${
+                          item.type === 'Found' ? 'text-accent-900' : 'text-green-900'
+                        }`}>
+                          {item.type === 'Found'
+                            ? `${claimsCount} ${claimsCount === 1 ? 'Claim' : 'Claims'}`
+                            : `${foundsCount} ${foundsCount === 1 ? 'Found Report' : 'Found Reports'}`
+                          }
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          item.type === 'Found' ? 'text-accent-700' : 'text-green-700'
+                        }`}>
+                          {item.type === 'Found'
+                            ? 'People have claimed this item'
+                            : 'People have reported finding this item'
+                          }
+                        </p>
+                      </div>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 200 }}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                          item.type === 'Found'
+                            ? 'bg-accent-200 text-accent-900'
+                            : 'bg-green-200 text-green-900'
+                        }`}
+                      >
+                        {item.type === 'Found' ? claimsCount : foundsCount}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Actions */}
                 {isOwner && (
                   <div className="flex items-center space-x-3 pt-4 border-t border-neutral-200">
@@ -373,18 +426,22 @@ export default function ItemDetailsPage({ params }) {
                   </div>
                 )}
 
-                {canClaim && (
+                {canTakeAction && (
                   <button
                     onClick={handleClaim}
-                    disabled={claiming}
-                    className="w-full btn-primary flex items-center justify-center space-x-2"
+                    disabled={actioning}
+                    className={`w-full flex items-center justify-center space-x-2 ${
+                      item.type === 'Found'
+                        ? 'btn-primary'
+                        : 'bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50'
+                    }`}
                   >
-                    {claiming ? (
+                    {actioning ? (
                       <LoadingSpinner size="sm" />
                     ) : (
                       <>
                         <FiCheckCircle className="w-5 h-5" />
-                        <span>Claim This Item</span>
+                        <span>{item.type === 'Found' ? 'Claim This Item' : 'I Found This Item'}</span>
                       </>
                     )}
                   </button>
