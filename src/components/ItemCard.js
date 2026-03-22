@@ -56,10 +56,10 @@ export default function ItemCard({ item, index = 0 }) {
             />
             
             {/* Type Badge */}
-            <motion.div 
+            <motion.div
               className={`absolute top-3 left-3 px-3 py-1 rounded-md text-xs font-semibold ${
-                item.type === 'Lost' 
-                  ? 'bg-red-600 text-white' 
+                item.type === 'Lost'
+                  ? 'bg-red-600 text-white'
                   : 'bg-accent-600 text-white'
               }`}
               whileHover={{ scale: 1.05 }}
@@ -67,21 +67,13 @@ export default function ItemCard({ item, index = 0 }) {
               {item.type === 'Lost' ? 'LOST' : 'FOUND'}
             </motion.div>
 
-            {/* Status Badge */}
-            <motion.div
-              className={`absolute top-3 right-3 badge ${getStatusColor(item.status)}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              {item.status}
-            </motion.div>
-
-            {/* Claims/Found Count Badge */}
+            {/* Claims/Found Count Badge - Top Right */}
             {hasActivity && (
               <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className={`absolute bottom-3 left-3 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center space-x-1 ${
+                className={`absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center space-x-1 ${
                   item.type === 'Found'
                     ? 'bg-accent-500 text-white'
                     : 'bg-green-500 text-white'
